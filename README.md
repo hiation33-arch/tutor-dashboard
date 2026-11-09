@@ -4,7 +4,7 @@
 
 ## 바로 사용하기
 
-👉 **[튜터 업무대시보드 열기](https://hiation33-arch.github.io/sau-tutor-dashboard/)**
+👉 **[튜터 업무대시보드 열기](https://hiation33-arch.github.io/tutor-dashboard/)**
 
 ## 주요 기능
 
