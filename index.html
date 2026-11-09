@@ -368,7 +368,7 @@ textarea{resize:vertical;line-height:1.6}
   <header class="site">
     <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18v-5M12 18V6M17 18v-8"/></svg></div>
     <div class="sitettl">
-      <h1><span id="brandSchool">사우고등학교</span><span class="hl">튜터 업무대시보드</span></h1>
+      <h1><span id="brandSchool">○○학교</span><span class="hl">튜터 업무대시보드</span></h1>
       <p>접수 · 고장 처리 · 수업 지원 · 기기 현황 · 실적 보고를 한 화면에서 관리해요.</p>
     </div>
     <div class="tools">
@@ -444,7 +444,7 @@ const DEV_C={'정상':'ok','점검 필요':'warn','수리 중':'bad','분실':'l
 const TK_ST=['접수','진단','AS 의뢰','완료'];
 const TK_C={'접수':'--info','진단':'--warn','AS 의뢰':'--bad','완료':'--ok'};
 const CATS=['전원·충전','화면·터치','네트워크','앱·디지털교과서','입력장치','분실','기타'];
-const SUBJECTS=['국어','수학','영어','한국사','사회','과학','정보','음악','미술','체육','창체'];
+const SUBJECTS=['국어','수학','영어','한국사','사회','과학','도덕','실과','정보','음악','미술','체육','창체'];
 const PERIODS=[1,2,3,4,5,6,7];
 const SUP_SUGS=['디지털교과서 접속 지원','AI 코스웨어 활동 지원','협업 도구 활동 지원','화면 공유 설정 지원','코딩 수업 보조','수업 중 기기 활용 지원'];
 const GA='가나다라마바사아자차카타파하';
@@ -465,6 +465,7 @@ const CYCLE={
 
 /* ---------- 저장 ---------- */
 const KEY='dt-sau-dashboard-v1';
+const DEFAULT_SCHOOL='○○학교';
 let S;
 function rooms(){return String(S.settings.rooms||'').split(/[,\n]/).map(s=>s.trim()).filter(Boolean);}
 function devId(room,i){const m=String(room).match(/^(\d+)-(\d+)$/);if(m)return `T${m[1]}-${pad(m[2])}-${pad(i)}`;if(room==='컴퓨터실')return `LAB-${pad(i)}`;const sp=rooms().filter(r=>!/^\d+-\d+$/.test(r)&&r!=='컴퓨터실');return `S${sp.indexOf(room)+1}-${pad(i)}`;}
@@ -476,7 +477,7 @@ function addLog(type,room,min,note,date){S.logs.push({id:uid(),date:date||TODAY,
 
 function makeSample(){
   const R=rng(7311),pick=a=>a[Math.floor(R()*a.length)];
-  S=blank({school:'사우고등학교',tutor:'디지털튜터',rooms:'1-1, 1-2, 1-3, 1-4, 2-1, 2-2, 2-3, 2-4, 3-1, 3-2, 3-3, 3-4, 컴퓨터실'});
+  S=blank({school:DEFAULT_SCHOOL,tutor:'디지털튜터',rooms:'1-1, 1-2, 1-3, 1-4, 2-1, 2-2, 2-3, 2-4, 3-1, 3-2, 3-3, 3-4, 컴퓨터실'});
   S.sample=true;
   const rs=rooms(),SER='ABCDEFGHJKLMNPRSTUVWXYZ0123456789';
   rs.forEach(r=>{const lab=r==='컴퓨터실',n=lab?30:25;for(let i=1;i<=n;i++){const x=R();const st=x<.008?'분실':x<.028?'점검 필요':x<.05?'예비':'정상';
@@ -622,8 +623,8 @@ const ACC=/비밀번호|비번|패스워드|로그인|계정|아이디/;
 function cleanLine(s){return s.replace(/^\s*(\[[^\]]*\]\s*)+/,'').replace(/^\s*(오전|오후)\s*\d{1,2}:\d{2}\s*/,'').trim();}
 function parseLine(raw){
   const t=cleanLine(raw),lo=t.toLowerCase();let m,room='';
-  m=t.match(/([1-3])\s*학년\s*(\d{1,2})\s*반/);if(m)room=`${m[1]}-${+m[2]}`;
-  else{m=t.match(/(?:^|[^\d])([1-3])\s*-\s*(\d{1,2})(?!\d)/);if(m)room=`${m[1]}-${+m[2]}`;}
+  m=t.match(/([1-6])\s*학년\s*(\d{1,2})\s*반/);if(m)room=`${m[1]}-${+m[2]}`;
+  else{m=t.match(/(?:^|[^\d])([1-6])\s*-\s*(\d{1,2})(?!\d)/);if(m)room=`${m[1]}-${+m[2]}`;}
   if(!room){const sp=rooms().find(r=>!/^\d+-\d+$/.test(r)&&t.includes(r));if(sp)room=sp;}
   m=t.match(/(\d{1,2})\s*번/);const no=m?+m[1]:'';
   m=t.match(/([1-7])\s*교시/);const period=m?+m[1]:0;
@@ -1025,17 +1026,27 @@ const ACT={
   settings:()=>openModal(`<h3>설정</h3>
     <div class="row2"><div class="field"><label for="cSchool">학교 이름</label><input id="cSchool" value="${esc(S.settings.school)}"></div><div class="field"><label for="cTutor">작성자</label><input id="cTutor" value="${esc(S.settings.tutor)}"></div></div>
     <div class="field"><label for="cRooms">학급·장소 목록(쉼표로 구분)</label><textarea id="cRooms" rows="3">${esc(S.settings.rooms)}</textarea></div>
-    <h4>백업과 옮기기</h4><p class="hint">기록은 지금 사용하는 브라우저에만 저장됩니다. 다른 컴퓨터로 옮기거나 정보부장님께 전달할 때는 백업 코드를 복사해 메신저로 보내 주세요.</p>
+    <h4>백업과 옮기기</h4><p class="hint">기록은 지금 사용하는 브라우저에만 저장됩니다. 다른 컴퓨터로 옮기거나 다른 선생님께 전달할 때는 백업 코드를 복사해 메신저로 보내 주세요.</p>
     <div class="mfoot" style="justify-content:flex-start;margin-top:8px"><button class="btn sm" data-act="backup">${ICON.copy}백업 코드 복사</button><button class="btn sm" data-act="restoreShow">백업 코드로 복원</button></div>
     <div id="restoreBox"></div>
     <h4>초기화</h4><div class="mfoot" style="justify-content:flex-start;margin-top:8px">${S.sample?'<button class="btn sm danger" data-act="clearSample">예시 지우고 시작</button>':''}<button class="btn sm danger" data-act="reloadSample">예시 다시 불러오기</button></div>
     <div class="mfoot"><button class="btn" data-act="close">닫기</button><button class="btn primary" data-act="setsave">저장</button></div>`),
-  setsave:()=>{S.settings.school=$('#cSchool').value.trim()||'사우고등학교';S.settings.tutor=$('#cTutor').value.trim()||'디지털튜터';S.settings.rooms=$('#cRooms').value.trim();save();closeModal();render(true);toast('설정을 저장했습니다.');},
+  setsave:()=>{S.settings.school=$('#cSchool').value.trim()||DEFAULT_SCHOOL;S.settings.tutor=$('#cTutor').value.trim()||'디지털튜터';S.settings.rooms=$('#cRooms').value.trim();save();closeModal();render(true);toast('설정을 저장했습니다.');},
   backup:()=>copyText(JSON.stringify(S),'백업 코드를 복사했습니다. 메모장이나 메신저에 붙여 보관해 주세요.'),
   restoreShow:()=>{$('#restoreBox').innerHTML=`<div class="field" style="margin-top:10px"><label for="restoreText">백업 코드</label><textarea id="restoreText" rows="4"></textarea></div><button class="btn sm primary" data-act="restoreGo">이 코드로 복원</button>`;},
   restoreGo:()=>{try{const o=JSON.parse($('#restoreText').value);if(!o||!Array.isArray(o.devices)||!o.settings)throw 0;S=o;save();closeModal();render();toast('백업을 복원했습니다.');}catch(e){toast('백업 코드를 읽지 못했습니다. 코드 전체를 붙여 넣어 주세요.');}},
   clearSample:()=>confirmBox('예시 기기와 기록을 모두 지우고 빈 상태로 시작합니다. 학급 목록은 남겨 두니 설정에서 우리 학교에 맞게 고쳐 주세요.','예시 지우기',()=>{S=blank(S.settings);save();render();ACT.settings();}),
-  reloadSample:()=>confirmBox('지금까지의 기록을 모두 지우고 예시를 다시 불러옵니다. 필요하면 먼저 백업 코드를 복사해 주세요.','예시 불러오기',()=>{S=makeSample();save();render();}),
+  reloadSample:()=>confirmBox('지금까지의 기록을 모두 지우고 예시를 다시 불러옵니다. 필요하면 먼저 백업 코드를 복사해 주세요.','예시 불러오기',()=>{const sc=S.settings.school,tu=S.settings.tutor;S=makeSample();S.settings.school=sc;S.settings.tutor=tu;save();render();}),
+  // 처음 열었을 때 학교 이름 받기
+  welcome:()=>openModal(`<h3>학교 이름을 알려 주세요</h3>
+    <p class="hint" style="margin:0 0 14px">입력한 이름은 화면 맨 위, 활동일지, 월간 실적 보고서에 그대로 들어갑니다. 설정에서 언제든 바꿀 수 있어요.</p>
+    <div class="field"><label for="wSchool">학교 이름</label><input id="wSchool" placeholder="예) ○○초등학교, △△중학교, □□고등학교" autocomplete="off"></div>
+    <div class="field"><label for="wTutor">작성자 이름 <small style="font-weight:500;color:var(--muted)">(선택, 일지 작성자란에 들어갑니다)</small></label><input id="wTutor" placeholder="예) 홍길동" autocomplete="off"></div>
+    <p class="hint">학급·장소 목록은 설정에서 우리 학교에 맞게 바꿔 주세요. (예: 초등 1-1 ~ 6-4, 중·고등 1-1 ~ 3-8)</p>
+    <div class="mfoot"><button class="btn" data-act="welcomeSkip">나중에</button><button class="btn primary" data-act="welcomeSave">시작하기</button></div>`),
+  welcomeSave:()=>{const sc=$('#wSchool').value.trim();if(!sc){$('#wSchool').focus();toast('학교 이름을 입력해 주세요.');return;}
+    S.settings.school=sc;const tu=$('#wTutor').value.trim();if(tu)S.settings.tutor=tu;save();closeModal();render(true);toast(`${sc} 대시보드로 시작합니다.`);},
+  welcomeSkip:()=>{S.skipWelcome=true;save();closeModal();},
 };
 
 document.addEventListener('click',e=>{const a=e.target.closest('[data-act]');if(!a)return;const f=ACT[a.dataset.act];if(!f)return;if(a.tagName!=='A')e.preventDefault();f(a,e);});
@@ -1062,6 +1073,7 @@ window.addEventListener('hashchange',route);
 $('#topQuick').innerHTML=ICON.plus+'<span class="lbl">기록 남기기</span>';
 $('#topGear').innerHTML=ICON.gear;
 load();save();route();
+if(S.settings.school===DEFAULT_SCHOOL&&!S.skipWelcome)ACT.welcome();
 })();
 </script>
 
